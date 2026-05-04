@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smoke Sense | Virtual ESP32 Device</title>
+    <link rel="stylesheet" href="../CSS/base.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --esp32-bg: #1a1a1a;
+            --esp32-accent: #3498db;
+            --danger: #ff4d4d;
+            --safe: #00ff88;
+        }
+
+        body {
+            background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Outfit', sans-serif;
+            color: white;
+        }
+
+        .device-container {
+            width: 400px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+
+        .esp32-model {
+            width: 120px;
+            height: 180px;
+            background: var(--esp32-bg);
+            margin: 0 auto 30px;
+            border-radius: 15px;
+            position: relative;
+            border: 2px solid #333;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+        }
+
+        .led {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #333;
+            box-shadow: 0 0 5px rgba(0,0,0,0.5);
+            transition: all 0.3s ease;
+        }
+
+        .led.active {
+            background: var(--safe);
+            box-shadow: 0 0 15px var(--safe);
+        }
+
+        .led.warning {
+            background: var(--danger);
+            box-shadow: 0 0 15px var(--danger);
+            animation: blink 0.5s infinite;
+        }
+
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+
+        .chip {
+            width: 60px;
+            height: 80px;
+            background: #222;
+            margin: 50px auto 0;
+            border-radius: 5px;
+            border: 1px solid #444;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: #666;
+        }
+
+        .controls {
+            margin-top: 30px;
+        }
+
+        .slider-container {
+            margin: 20px 0;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--esp32-accent);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            background: rgba(255,255,255,0.1);
+            margin-bottom: 20px;
+        }
+
+        .status-badge.online { color: var(--safe); }
+        .status-badge.warning { color: var(--danger); }
+
+        .btn-trigger {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            border: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .btn-trigger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn-trigger.active {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+
+        .sensor-data {
+            font-size: 24px;
+            font-weight: 700;
+            margin: 15px 0;
+        }
+
+        .device-id-input {
+            background: rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            width: 60px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="device-container">
+        <h2>Virtual ESP32 Device</h2>
+        <div class="status-badge online" id="connectionStatus">Connecting...</div>
+        
+        <div class="esp32-model">
+            <div class="led active" id="statusLed"></div>
+            <div class="chip">ESP32-WROOM</div>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <label style="display:block; margin-bottom:10px; font-size:12px; color:rgba(255,255,255,0.6);">SELECT ASSIGNED DEVICE TO TEST</label>
+            <select id="deviceSelect" class="device-id-input" style="width: 100%; height: 50px; font-size: 14px; font-weight: 600;">
+                <option value="">Loading devices...</option>
+            </select>
+        </div>
+
+        <div class="sensor-data" id="smokeValueDisplay">0 PPM</div>
+        
+        <div class="slider-container">
+            <label>Simulate Smoke Level</label>
+            <input type="range" id="smokeSlider" min="0" max="1024" value="0">
+        </div>
+
+        <button class="btn-trigger" id="triggerBtn">Manual Alert Trigger</button>
+        
+        <p style="font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 20px;">
+            This device simulates a physical smoke sensor sending data to the system via WebSockets.
+        </p>
+    </div>
+
+    <script>
+        const socket = new WebSocket('ws://localhost:8080');
+        const smokeSlider = document.getElementById('smokeSlider');
+        const smokeDisplay = document.getElementById('smokeValueDisplay');
+        const triggerBtn = document.getElementById('triggerBtn');
+        const statusLed = document.getElementById('statusLed');
+        const connectionStatus = document.getElementById('connectionStatus');
+        const deviceSelect = document.getElementById('deviceSelect');
+        let isAlerting = false;
+
+        // ─── Device State Persistence ───────────────────────────────────────────
+        const DEVICE_STATE_KEY = 'deviceSimulatorState';
+
+        function saveDeviceState(alerting, deviceId) {
+            try {
+                localStorage.setItem(DEVICE_STATE_KEY, JSON.stringify({
+                    isAlerting: alerting,
+                    deviceId: deviceId,
+                    timestamp: Date.now()
+                }));
+                console.log('[Device] State saved - alerting:', alerting, '| device:', deviceId);
+            } catch (e) {
+                console.error('[Device] Failed to save state:', e);
+            }
+        }
+
+        function getDeviceState() {
+            try {
+                const stored = localStorage.getItem(DEVICE_STATE_KEY);
+                if (!stored) return null;
+                const state = JSON.parse(stored);
+                // Consider state valid if less than 10 minutes old
+                if (Date.now() - state.timestamp < 10 * 60 * 1000) {
+                    return state;
+                }
+                // Clear stale state
+                localStorage.removeItem(DEVICE_STATE_KEY);
+                return null;
+            } catch (e) {
+                console.error('[Device] Failed to read state:', e);
+                return null;
+            }
+        }
+
+        function clearDeviceState() {
+            try {
+                localStorage.removeItem(DEVICE_STATE_KEY);
+                console.log('[Device] State cleared');
+            } catch (e) {
+                console.error('[Device] Failed to clear state:', e);
+            }
+        }
+
+        // ─── Restore State on Page Load ─────────────────────────────────────────
+        function restoreDeviceState() {
+            const storedState = getDeviceState();
+            if (storedState && storedState.isAlerting) {
+                console.log('[Device] 🔄 Restoring alert state from', new Date(storedState.timestamp).toLocaleTimeString());
+                
+                // Set device selection
+                if (storedState.deviceId) {
+                    deviceSelect.value = storedState.deviceId;
+                }
+                
+                // Restore alert state
+                isAlerting = true;
+                triggerBtn.innerText = 'Stop Alert';
+                triggerBtn.classList.add('active');
+                smokeSlider.value = 950;
+                smokeDisplay.innerText = '950 PPM';
+                statusLed.className = 'led warning';
+                
+                // Start sending continuous updates
+                updateSystemStatus('Danger', 950);
+                window.alertInterval = setInterval(() => {
+                    if (isAlerting) {
+                        console.log('[Device] Sending continuous Danger status (restored)');
+                        updateSystemStatus('Danger', 950);
+                    }
+                }, 3000);
+                
+                console.log('[Device] ✓ Alert state restored successfully');
+            } else {
+                console.log('[Device] No stored alert state or expired');
+            }
+        }
+
+        // Fetch assigned devices
+        async function loadAssignedDevices() {
+            try {
+                const response = await fetch('http://localhost:5000/api/devices');
+                const devices = await response.json();
+                const assigned = devices.filter(d => d.assignment_status === 'Assigned');
+                
+                deviceSelect.innerHTML = assigned.length ? '' : '<option value="">No assigned devices found</option>';
+                
+                assigned.forEach(dev => {
+                    const option = document.createElement('option');
+                    option.value = dev.id;
+                    option.textContent = `${dev.device_name} (Room: ${dev.room_id || 'N/A'})`;
+                    deviceSelect.appendChild(option);
+                });
+                
+                // Restore state after devices are loaded
+                restoreDeviceState();
+            } catch (err) {
+                console.error('Error loading devices:', err);
+                deviceSelect.innerHTML = '<option value="">Error loading devices</option>';
+            }
+        }
+
+        loadAssignedDevices();
+
+        socket.onopen = () => {
+            connectionStatus.innerText = 'Online';
+            connectionStatus.className = 'status-badge online';
+            statusLed.classList.add('active');
+            console.log('[Device] WebSocket connected');
+        };
+
+        socket.onclose = () => {
+            connectionStatus.innerText = 'Disconnected';
+            connectionStatus.className = 'status-badge';
+            statusLed.classList.remove('active');
+            console.log('[Device] WebSocket disconnected');
+        };
+
+        smokeSlider.addEventListener('input', (e) => {
+            const val = e.target.value;
+            smokeDisplay.innerText = val + ' PPM';
+            
+            if (val > 800) {
+                statusLed.className = 'led warning'; // Pulse red
+                updateSystemStatus('Danger', val);
+            } else if (val > 400) {
+                statusLed.className = 'led warning';
+                updateSystemStatus('Warning', val);
+            } else {
+                statusLed.className = 'led active';
+                updateSystemStatus('Online', val);
+            }
+        });
+
+        triggerBtn.addEventListener('click', () => {
+            isAlerting = !isAlerting;
+            if (isAlerting) {
+                console.log('[Device] 🚨 Starting manual alert trigger');
+                triggerBtn.innerText = 'Stop Alert';
+                triggerBtn.classList.add('active');
+                smokeSlider.value = 950;
+                smokeDisplay.innerText = '950 PPM';
+                statusLed.className = 'led warning';
+                updateSystemStatus('Danger', 950);
+                
+                // Save state
+                saveDeviceState(true, deviceSelect.value);
+                
+                // Keep sending danger status every 3 seconds while alert is active
+                window.alertInterval = setInterval(() => {
+                    if (isAlerting) {
+                        console.log('[Device] Sending continuous Danger status');
+                        updateSystemStatus('Danger', 950);
+                    }
+                }, 3000);
+            } else {
+                console.log('[Device] 🛑 Stopping manual alert trigger');
+                triggerBtn.innerText = 'Manual Alert Trigger';
+                triggerBtn.classList.remove('active');
+                smokeSlider.value = 0;
+                smokeDisplay.innerText = '0 PPM';
+                statusLed.className = 'led active';
+                updateSystemStatus('Online', 0);
+                
+                // Clear state
+                clearDeviceState();
+                
+                // Stop the continuous danger updates
+                if (window.alertInterval) {
+                    clearInterval(window.alertInterval);
+                    window.alertInterval = null;
+                }
+            }
+        });
+
+        async function updateSystemStatus(status, value) {
+            const deviceId = deviceSelect.value;
+            if (!deviceId) return;
+            
+            // 1. Update Backend Database
+            try {
+                await fetch(`http://localhost:5000/api/devices/${deviceId}/status`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status, smoke_level: value })
+                });
+            } catch (err) {
+                console.error('Failed to update backend:', err);
+            }
+
+            // 2. Broadcast via WebSocket
+            const payload = {
+                type: 'alert',
+                device_id: deviceId,
+                status: status,
+                smoke_level: value,
+                timestamp: new Date().toISOString()
+            };
+            
+            if (socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify(payload));
+            }
+        }
+
+        // Send heartbeat & continuous reading every 5 seconds
+        setInterval(() => {
+            if (socket.readyState === WebSocket.OPEN && deviceSelect.value) {
+                // Heartbeat to keep connection alive
+                socket.send(JSON.stringify({
+                    type: 'heartbeat',
+                    device_id: deviceSelect.value,
+                    timestamp: new Date().toISOString()
+                }));
+                
+                // Continuous data broadcast (simulates ESP32 constant reading)
+                if (!isAlerting) { // If alerting, the other interval handles it
+                    const val = document.getElementById('smokeSlider').value;
+                    let currentStatus = 'Online';
+                    if (val > 800) currentStatus = 'Danger';
+                    else if (val > 400) currentStatus = 'Warning';
+                    
+                    socket.send(JSON.stringify({
+                        type: 'alert',
+                        device_id: deviceSelect.value,
+                        status: currentStatus,
+                        smoke_level: val,
+                        timestamp: new Date().toISOString()
+                    }));
+                }
+            }
+        }, 5000);
+    </script>
+</body>
+</html>

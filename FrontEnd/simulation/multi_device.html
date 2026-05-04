@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smoke Sense | Multi-Device Simulation</title>
+    <link rel="stylesheet" href="../CSS/base.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --esp32-bg: #1a1a1a;
+            --esp32-accent: #3498db;
+            --danger: #ff4d4d;
+            --safe: #00ff88;
+            --glass: rgba(255, 255, 255, 0.05);
+        }
+
+        body {
+            background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Outfit', sans-serif;
+            color: white;
+            padding: 40px;
+        }
+
+        .header-section {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .header-section h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(to right, #fff, #3498db);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .devices-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .device-card {
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 30px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .device-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(52, 152, 219, 0.5);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .device-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .device-id-badge {
+            background: var(--esp32-accent);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .esp32-mini {
+            width: 80px;
+            height: 110px;
+            background: #111;
+            margin: 0 auto 20px;
+            border-radius: 10px;
+            position: relative;
+            border: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mini-led {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #333;
+        }
+
+        .mini-led.active { background: var(--safe); box-shadow: 0 0 10px var(--safe); }
+        .mini-led.warning { background: var(--esp32-accent); box-shadow: 0 0 10px var(--esp32-accent); animation: blink 1s infinite; }
+        .mini-led.danger { background: var(--danger); box-shadow: 0 0 15px var(--danger); animation: blink 0.4s infinite; }
+
+        .mini-chip-text {
+            font-size: 8px;
+            color: #555;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .status-text {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--safe);
+        }
+
+        .status-text.warning { color: var(--esp32-accent); }
+        .status-text.danger { color: var(--danger); font-weight: 800; text-shadow: 0 0 10px rgba(255, 77, 77, 0.3); }
+
+        .ppm-display {
+            font-size: 28px;
+            font-weight: 800;
+            margin: 10px 0;
+        }
+
+        .control-group {
+            margin-top: 20px;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--esp32-accent);
+            margin: 10px 0;
+        }
+
+        .btn-panic {
+            width: 100%;
+            padding: 12px;
+            border-radius: 12px;
+            border: none;
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-panic:hover {
+            background: var(--danger);
+            border-color: var(--danger);
+        }
+
+        .btn-panic.active {
+            background: var(--danger);
+            animation: pulse-red 1s infinite;
+        }
+
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(255, 77, 77, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 77, 77, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 77, 77, 0); }
+        }
+
+        .footer-tools {
+            text-align: center;
+            margin-top: 60px;
+        }
+
+        .btn-tool {
+            background: var(--esp32-accent);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s;
+        }
+
+        .btn-tool:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 20px rgba(52, 152, 219, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="header-section">
+        <h1>System Network Simulator</h1>
+        <p style="color: rgba(255,255,255,0.5)">Simulating 6 independent ESP32 nodes connected to Smoke Sense</p>
+    </div>
+
+    <div class="devices-grid" id="deviceGrid">
+        <!-- Devices will be generated by JS -->
+    </div>
+
+    <div class="footer-tools">
+        <a href="../HTML/index.html" class="btn-tool">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+
+    <script>
+        const socket = new WebSocket('ws://localhost:8080');
+        const deviceGrid = document.getElementById('deviceGrid');
+        
+        let devices = [];
+        const deviceStates = {};
+
+        async function fetchDevices() {
+            try {
+                const response = await fetch('http://localhost:5000/api/devices');
+                devices = await response.json();
+                
+                deviceGrid.innerHTML = '';
+                devices.forEach(d => {
+                    deviceGrid.appendChild(createDeviceUI(d));
+                    deviceStates[d.id] = { isPanic: false, value: 0 };
+                });
+            } catch (err) {
+                console.error('Error fetching devices:', err);
+                deviceGrid.innerHTML = '<p style="color: var(--danger); text-align: center; grid-column: 1/-1;">Error: Could not load devices. Is the backend running?</p>';
+            }
+        }
+
+        function createDeviceUI(device) {
+            const card = document.createElement('div');
+            card.className = 'device-card';
+            card.id = `device-${device.id}`;
+            
+            card.innerHTML = `
+                <div class="device-header">
+                    <span class="device-id-badge">ID: ${device.id}</span>
+                    <span style="font-weight: 700; color: rgba(255,255,255,0.7)">${device.device_name}</span>
+                </div>
+                
+                <div class="esp32-mini">
+                    <div class="mini-led active" id="led-${device.id}"></div>
+                    <div class="mini-chip-text">ESP32</div>
+                </div>
+
+                <div class="status-text" id="status-text-${device.id}">ONLINE</div>
+                <div class="ppm-display" id="ppm-${device.id}">0 PPM</div>
+                
+                <div class="control-group">
+                    <input type="range" id="slider-${device.id}" min="0" max="1024" value="0" 
+                        oninput="handleSliderChange(${device.id}, this.value)">
+                    <button class="btn-panic" id="panic-${device.id}" onclick="togglePanic(${device.id})">
+                        <i class="fas fa-radiation"></i> TRIGGER PANIC
+                    </button>
+                </div>
+            `;
+            
+            return card;
+        }
+
+        // Initialize Grid from Database
+        fetchDevices();
+
+        async function updateRemoteStatus(deviceId, status, value) {
+            // 1. Backend Update
+            try {
+                await fetch(`http://localhost:5000/api/devices/${deviceId}/status`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status, smoke_level: value })
+                });
+            } catch (err) { console.error('API Error:', err); }
+
+            // 2. WebSocket Broadcast
+            if (socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify({
+                    type: 'alert',
+                    device_id: deviceId,
+                    status: status,
+                    smoke_level: value,
+                    timestamp: new Date().toISOString()
+                }));
+            }
+        }
+
+        window.handleSliderChange = (id, val) => {
+            const ppmDisplay = document.getElementById(`ppm-${id}`);
+            const led = document.getElementById(`led-${id}`);
+            const statusText = document.getElementById(`status-text-${id}`);
+            
+            if (ppmDisplay) ppmDisplay.innerText = `${val} PPM`;
+            
+            if (val > 800) {
+                if (led) led.className = 'mini-led danger';
+                if (statusText) {
+                    statusText.innerText = 'DANGER';
+                    statusText.className = 'status-text danger';
+                }
+                updateRemoteStatus(id, 'Danger', val);
+            } else if (val > 400) {
+                if (led) led.className = 'mini-led warning';
+                if (statusText) {
+                    statusText.innerText = 'WARNING';
+                    statusText.className = 'status-text warning';
+                }
+                updateRemoteStatus(id, 'Warning', val);
+            } else {
+                if (led) led.className = 'mini-led active';
+                if (statusText) {
+                    statusText.innerText = 'ONLINE';
+                    statusText.className = 'status-text';
+                }
+                updateRemoteStatus(id, 'Online', val);
+            }
+        };
+
+        window.togglePanic = (id) => {
+            const state = deviceStates[id];
+            state.isPanic = !state.isPanic;
+            
+            const btn = document.getElementById(`panic-${id}`);
+            const slider = document.getElementById(`slider-${id}`);
+            
+            if (state.isPanic) {
+                btn.classList.add('active');
+                btn.innerHTML = '<i class="fas fa-stop-circle"></i> STOP ALERT';
+                slider.value = 950;
+                handleSliderChange(id, 950);
+            } else {
+                btn.classList.remove('active');
+                btn.innerHTML = '<i class="fas fa-radiation"></i> TRIGGER PANIC';
+                slider.value = 0;
+                handleSliderChange(id, 0);
+            }
+        };
+
+        // Heartbeats and Continuous Data for all devices
+        setInterval(() => {
+            if (socket.readyState === WebSocket.OPEN) {
+                devices.forEach(d => {
+                    // 1. Heartbeat
+                    socket.send(JSON.stringify({
+                        type: 'heartbeat',
+                        device_id: d.id,
+                        timestamp: new Date().toISOString()
+                    }));
+                    
+                    // 2. Continuous data broadcast
+                    const state = deviceStates[d.id];
+                    if (!state.isPanic) {
+                        const slider = document.getElementById(`slider-${d.id}`);
+                        const val = slider ? parseInt(slider.value) || 0 : 0;
+                        let currentStatus = 'Online';
+                        if (val > 800) currentStatus = 'Danger';
+                        else if (val > 400) currentStatus = 'Warning';
+                        
+                        socket.send(JSON.stringify({
+                            type: 'alert',
+                            device_id: d.id,
+                            status: currentStatus,
+                            smoke_level: val,
+                            timestamp: new Date().toISOString()
+                        }));
+                    }
+                });
+            }
+        }, 5000);
+
+        socket.onopen = () => console.log('Sim Network Connected');
+    </script>
+</body>
+</html>

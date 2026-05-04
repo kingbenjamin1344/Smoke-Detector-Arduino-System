@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smoke Sense | Login</title>
+    <link rel="stylesheet" href="../CSS/base.css">
+    <link rel="stylesheet" href="../CSS/login.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="login-body">
+    <div class="login-container animate-fade-in">
+        <div class="login-logo">
+            <div class="logo-icon"></div>
+            <h2 class="logo-text" style="color: white;">SMOKE<span>Sense</span></h2>
+        </div>
+
+        <div class="login-header">
+            <h2>Welcome Back</h2>
+            <p>Please enter your details to login</p>
+        </div>
+
+        <form class="login-form" id="loginForm">
+            <div class="form-group">
+                <label>Username or Email</label>
+                <div class="input-group">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="username" placeholder="Enter your username" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Password</label>
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="password" placeholder="Enter your password" required>
+                </div>
+            </div>
+
+            <div class="login-footer">
+                <label class="remember-me">
+                    <input type="checkbox"> Remember me
+                </label>
+                <a href="#" class="forgot-link">Forgot Password?</a>
+            </div>
+
+            <button type="submit" class="btn-login">Login</button>
+        </form>
+
+        <p class="signup-text">
+            Don't have an account? <a href="#">Create Account</a>
+        </p>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="modal-overlay">
+        <div class="modal-content" style="text-align: center; width: 400px; background: white;">
+            <div style="font-size: 60px; color: var(--success); margin-bottom: 20px;">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h2 style="color: #333; margin-bottom: 10px;">Login Successful!</h2>
+            <p style="color: #666; margin-bottom: 25px;">Welcome back, ReyAxcel. Redirecting to dashboard...</p>
+            <div class="success-progress" style="width: 100%; height: 4px; background: #eee; border-radius: 2px; overflow: hidden;">
+                <div id="progressBar" style="width: 0%; height: 100%; background: var(--success); transition: width 1.5s linear;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../JAVASCRIPT/api.js"></script>
+    <script src="../JAVASCRIPT/common.js"></script>
+    <script src="../JAVASCRIPT/audio-alerts.js"></script>
+    <script src="../JAVASCRIPT/system-alerts.js"></script>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // For now, we'll simulate the successful login as requested
+            // In a real scenario, you'd call SmokeAPI.login(username, password)
+            
+            const successModal = document.getElementById('successModal');
+            const progressBar = document.getElementById('progressBar');
+            
+            successModal.style.display = 'flex';
+            successModal.classList.add('animate-fade-in');
+            
+            setTimeout(() => {
+                progressBar.style.width = '100%';
+            }, 100);
+
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 2000);
+        });
+    </script>
+</body>
+</html>

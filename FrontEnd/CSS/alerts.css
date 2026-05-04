@@ -1,0 +1,237 @@
+/* Alerts Specific Styling */
+.alerts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.room-alert-card {
+    background: rgba(13, 22, 22, 0.85);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 30px;
+    overflow: hidden;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    color: white;
+}
+
+.room-alert-card:hover {
+    transform: translateY(-10px);
+    border-color: var(--primary-color);
+}
+
+.alert-top {
+    padding: 20px;
+    text-align: center;
+    position: relative;
+}
+
+.room-id {
+    position: absolute;
+    left: 20px;
+    top: 20px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.alert-time {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    font-size: 12px;
+    color: #999;
+}
+
+.alert-icon-main {
+    font-size: 80px;
+    margin: 20px 0;
+    display: block;
+}
+
+.alert-status-text {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+.owner-name {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.owner-name i {
+    color: var(--primary-color);
+    margin-right: 5px;
+}
+
+.alert-status-text.danger {
+    color: var(--danger);
+}
+
+.alert-status-text.warning {
+    color: var(--warning);
+}
+
+.alert-status-text.success {
+    color: var(--success);
+}
+
+.alert-bottom {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 15px 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.aqi-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.aqi-label {
+    font-size: 14px;
+    color: #666;
+}
+
+.aqi-value {
+    font-weight: 700;
+    font-size: 18px;
+}
+
+.aqi-value.danger {
+    color: var(--danger);
+}
+
+.aqi-icon-small {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.aqi-icon-small.danger {
+    background: var(--danger);
+}
+
+.aqi-icon-small.warning {
+    background: var(--warning);
+}
+
+.aqi-icon-small.success {
+    background: var(--success);
+}
+
+/* Real-time Animations */
+@keyframes highlight-glow {
+    0% {
+        box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.4);
+        border-color: var(--primary-color);
+    }
+
+    100% {
+        box-shadow: 0 0 0 20px rgba(0, 255, 136, 0);
+    }
+}
+
+@keyframes danger-red-pulse {
+    0% {
+        background: rgba(13, 22, 22, 0.85);
+    }
+
+    50% {
+        background: rgba(255, 77, 77, 0.2);
+        border-color: var(--danger);
+    }
+
+    100% {
+        background: rgba(13, 22, 22, 0.85);
+    }
+}
+
+.highlight-update {
+    animation: highlight-glow 1s ease-out;
+}
+
+.danger-pulse {
+    animation: danger-red-pulse 1.5s infinite;
+    border-color: var(--danger) !important;
+}
+
+.loading-state {
+    grid-column: 1/-1;
+    text-align: center;
+    padding: 100px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.loading-state i {
+    font-size: 40px;
+    color: var(--primary-color);
+    margin-bottom: 20px;
+}
+
+/* System Status Bar */
+.system-status-bar {
+    background: rgba(243, 156, 18, 0.1);
+    border: 1px solid rgba(243, 156, 18, 0.3);
+    color: #f39c12;
+    padding: 12px 25px;
+    border-radius: 12px;
+    margin-bottom: 25px;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.system-status-bar.armed {
+    background: rgba(0, 255, 136, 0.1);
+    border-color: rgba(0, 255, 136, 0.3);
+    color: var(--primary-color);
+}
+
+.system-status-bar.danger {
+    background: rgba(179, 0, 0, 0.2);
+    border-color: rgba(255, 77, 77, 0.5);
+    color: var(--danger);
+    animation: danger-status-pulse 1.5s infinite;
+}
+
+@keyframes danger-status-pulse {
+    0%, 100% {
+        background: rgba(179, 0, 0, 0.2);
+        border-color: rgba(255, 77, 77, 0.5);
+    }
+    50% {
+        background: rgba(179, 0, 0, 0.4);
+        border-color: rgba(255, 77, 77, 0.8);
+    }
+}
+
+.system-status-bar i {
+    font-size: 16px;
+}
+
+/* Alert resume banner (shown after refresh when Danger is active) */
+@keyframes pulse-bg {
+    from { background: #b30000; }
+    to   { background: #ff1a1a; }
+}
+
+#alertResumeBanner {
+    animation: pulse-bg 0.8s infinite alternate;
+}

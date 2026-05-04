@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smoke Sense | Assign Device</title>
+    <link rel="stylesheet" href="../CSS/base.css">
+    <link rel="stylesheet" href="../CSS/assign-device.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="logo-container">
+            <div class="logo-icon"></div>
+            <h2 class="logo-text">SMOKE<span>Sense</span></h2>
+        </div>
+
+        <p class="nav-label">Navigation</p>
+        <ul class="nav-links">
+            <li class="nav-item">
+                <a href="index.html" class="nav-link">
+                    <i class="fas fa-th-large"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="alerts.html" class="nav-link">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Alerts</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="assign-device.html" class="nav-link active">
+                    <i class="fas fa-plus-circle"></i>
+                    <span>Assign Device</span>
+                </a>
+            </li>
+        </ul>
+
+        <div class="user-profile">
+            <div class="user-avatar">
+                <img src="https://ui-avatars.com/api/?name=ReyAxcel+Lau+Daleon&background=random" alt="User profile">
+            </div>
+            <div class="user-info">
+                <h4>ReyAxcel Lau Daleon</h4>
+                <p>6477-344-7376</p>
+            </div>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="header">
+            <div class="welcome-msg">
+                <h1>Welcome Rey !</h1>
+            </div>
+            <div class="header-actions">
+                <div class="search-container">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search">
+                </div>
+                <button class="theme-toggle">
+                    <i class="fas fa-circle-half-stroke"></i>
+                </button>
+                <div class="profile-container">
+                    <button class="profile-btn" id="profileBtn">
+                        <i class="fas fa-user-circle"></i>
+                    </button>
+                    <div class="profile-dropdown" id="profileDropdown">
+                        <a href="#" class="dropdown-item">
+                            <i class="fas fa-user"></i> My Profile
+                        </a>
+                        <a href="#" class="dropdown-item">
+                            <i class="fas fa-cog"></i> Settings
+                        </a>
+                        <div class="dropdown-item logout" onclick="confirmLogout()">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <section class="assign-content">
+            <h2 class="page-title">Assign Device</h2>
+
+            <div id="systemStatus" class="system-status-bar armed" style="margin-bottom: 20px;">
+                <i class="fas fa-shield-alt"></i>
+                <span id="statusLabel">SYSTEM ARMED & MONITORING</span>
+            </div>
+            
+                <div style="display: flex; gap: 30px; justify-content: center; margin-top: 40px;">
+                    <div class="action-card animate-fade-in" onclick="openModal('registerModal')">
+                        <i class="fas fa-plus"></i>
+                        <p>Assign Device</p>
+                    </div>
+                    <div class="action-card animate-fade-in" onclick="openModal('roomModal')" style="border-color: #3498db;">
+                        <i class="fas fa-door-open" style="color: #3498db;"></i>
+                        <p>Register Room</p>
+                    </div>
+                </div>
+
+            <div style="margin-top: 60px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px;">
+                    <div>
+                        <h3 style="color: #333; font-size: 24px;">Registered Smoke Detector Devices</h3>
+                        <p style="color: #666; font-size: 12px;">The MQ-135 Air Quality Sensor Module, often used in Arduino DIY</p>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="color: #333; font-size: 14px;">Filter by</span>
+                        <select style="padding: 8px 15px; border-radius: 10px; border: none; background: rgba(0,0,0,0.2); outline: none;">
+                            <option>All Status</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="table-card animate-fade-in">
+                    <table class="device-table">
+                        <thead>
+                            <tr>
+                                <th>Device Name</th>
+                                <th>Room Owner</th>
+                                <th>Room Number</th>
+                                <th>Floor</th>
+                                <th>System Status</th>
+                                <th>Assignment</th>
+                            </tr>
+                        </thead>
+                        <tbody id="deviceTableBody">
+                            <!-- Dynamic content -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Logout Confirmation Modal -->
+    <div id="logoutModal" class="modal-overlay logout-modal">
+        <div class="modal-content">
+            <div class="logout-icon-big">
+                <i class="fas fa-sign-out-alt"></i>
+            </div>
+            <h2>Logout Confirmation</h2>
+            <p>Are you sure you want to log out of Smoke Sense?</p>
+            <div class="modal-footer" style="justify-content: center;">
+                <button class="btn btn-secondary" onclick="closeModal('logoutModal')" style="width: 120px;">Cancel</button>
+                <button class="btn" onclick="executeLogout()" style="width: 120px; background: var(--danger); color: white;">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logout Animation Overlay -->
+    <div id="logoutOverlay">
+        <div class="logout-loader"></div>
+        <p style="color: white; font-weight: 600; letter-spacing: 1px;">Logging out safely...</p>
+    </div>
+
+    <!-- Register Device Modal (Now Assign Device) -->
+    <div id="registerModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <i class="fas fa-link" style="font-size: 24px; color: #333;"></i>
+                <h2>ASSIGN DEVICE TO ROOM</h2>
+            </div>
+            <form id="assignDeviceForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Select Device</label>
+                        <select id="deviceDropdown" required>
+                            <option value="">Choose Device...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Select Room</label>
+                        <select id="roomDropdown" required onchange="handleRoomChange(this.value)">
+                            <option value="">Choose Room...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Floor</label>
+                        <select id="floorDropdown" required>
+                            <option value="">Select Floor...</option>
+                            <option value="Ground">Ground Floor</option>
+                            <option value="1">1st Floor</option>
+                            <option value="2">2nd Floor</option>
+                            <option value="3">3rd Floor</option>
+                            <option value="4">4th Floor</option>
+                            <option value="5">5th Floor</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Room Owner</label>
+                        <input type="text" id="autoRoomOwner" placeholder="Automatic Selection" readonly style="background: #f0f0f0;">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('registerModal')">CANCEL</button>
+                    <button type="submit" class="btn btn-primary">CONFIRM ASSIGNMENT</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Register Room Modal -->
+    <div id="roomModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <i class="fas fa-door-closed" style="font-size: 24px; color: #333;"></i>
+                <h2>REGISTER ROOM & OWNER</h2>
+            </div>
+            <form id="registerRoomForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Room Name/Number</label>
+                        <input type="text" id="newRoomName" placeholder="e.g. Room 101" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Floor</label>
+                        <select id="newRoomFloor" required>
+                            <option value="Ground">Ground Floor</option>
+                            <option value="1">1st Floor</option>
+                            <option value="2">2nd Floor</option>
+                            <option value="3">3rd Floor</option>
+                            <option value="4">4th Floor</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Owner Name</label>
+                        <input type="text" id="newRoomOwner" placeholder="Full Name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Description (Optional)</label>
+                        <input type="text" id="newRoomDesc" placeholder="e.g. Master Bedroom">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('roomModal')">CANCEL</button>
+                    <button type="submit" class="btn btn-primary">REGISTER ROOM</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../JAVASCRIPT/api.js"></script>
+    <script src="../JAVASCRIPT/common.js"></script>
+    <script src="../JAVASCRIPT/audio-alerts.js"></script>
+    <script src="../JAVASCRIPT/system-alerts.js"></script>
+    <script src="../JAVASCRIPT/assign-device.js"></script>
+</body>
+</html>
